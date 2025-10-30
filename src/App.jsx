@@ -10,6 +10,7 @@ import QuizScreen from './components/QuizScreen'
 import EducationalDebrief from './components/EducationalDebrief'
 import SkillTreeScreen from './components/SkillTreeScreen'
 import ToolsShop from './components/ToolsShop'
+import ProceduralMissionScreen from './components/ProceduralMissionScreen'
 import { getCareerRank } from './data/careers'
 import { getDailySeed, CHALLENGE_MODIFIERS, getRandomModifier } from './utils/procedural'
 
@@ -17,6 +18,7 @@ function App() {
   const [showModeSelector, setShowModeSelector] = useState(false)
   const [showSkillTree, setShowSkillTree] = useState(false)
   const [showToolsShop, setShowToolsShop] = useState(false)
+  const [showProceduralMissions, setShowProceduralMissions] = useState(false)
   const gameState = useGameState(state => state.gameState)
 
   // Scroll to top when game state changes
@@ -52,6 +54,13 @@ function App() {
   const handleStartProcedural = (difficulty = 'normal', seed = null) => {
     console.log('Starting procedural level:', difficulty, seed)
     initializeProceduralLevel(difficulty, seed)
+  }
+
+  const handleStartProceduralMission = (mission) => {
+    console.log('Starting procedural mission:', mission)
+    // TODO: Initialize level with mission data
+    initializeProceduralLevel('normal', mission.seed)
+    setShowProceduralMissions(false)
   }
 
   const handleStartEndless = () => {
@@ -237,20 +246,20 @@ function App() {
             <motion.button
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleStartProcedural('normal')}
+              onClick={() => setShowProceduralMissions(true)}
               className="w-full px-8 py-6 bg-gradient-to-r from-purple-600/80 to-pink-600/80 border-2 border-purple-500/50 text-white font-heading font-bold text-lg rounded-xl hover:from-purple-500/80 hover:to-pink-500/80 hover:border-purple-400 transition-all inline-flex items-center justify-center gap-3 group relative backdrop-blur-sm"
-              title="Randomly generated network - every run is unique!"
+              title="Infinite unique missions with modifiers!"
             >
               <Shuffle className="w-6 h-6" />
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                  PROCEDURAL NETWORK
+                  PROCEDURAL MISSIONS
                   <span className="text-xs bg-white/20 px-2 py-1 rounded">NEW</span>
                 </div>
-                <div className="text-xs text-purple-200 font-normal mt-1">Random unique network every time</div>
+                <div className="text-xs text-purple-200 font-normal mt-1">Infinite unique missions with random modifiers</div>
               </div>
               <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-4 py-2 bg-gray-900 border border-purple-500 rounded text-sm whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                🔀 Infinite variety with seed-based generation
+                🎲 Infinite variety • Modifiers • Daily challenges
               </div>
             </motion.button>
 
@@ -401,6 +410,16 @@ function App() {
       
       {/* Tools Shop Modal */}
       {showToolsShop && <ToolsShop onClose={() => setShowToolsShop(false)} />}
+      
+      {/* Procedural Missions Screen - Fixed overlay */}
+      {showProceduralMissions && (
+        <div className="fixed inset-0 z-50 overflow-auto">
+          <ProceduralMissionScreen
+            onStartMission={handleStartProceduralMission}
+            onBack={() => setShowProceduralMissions(false)}
+          />
+        </div>
+      )}
     </div>
   )
 }

@@ -71,7 +71,7 @@ function handleNmap(args, currentNode) {
   const target = args[args.length - 1]
 
   const visibility = hasStealthFlag ? 5 : 15
-  const timeCost = hasStealthFlag ? 2000 : 3000
+  const timeCost = hasStealthFlag ? 20 : 30  // Use same format as actions.js
 
   return {
     output: [
@@ -83,7 +83,7 @@ function handleNmap(args, currentNode) {
       { type: 'success', text: `80/tcp   open  http${hasVersionFlag ? '        Apache 2.4.41' : ''}` },
       { type: 'success', text: `443/tcp  open  https${hasVersionFlag ? '       Apache 2.4.41' : ''}` },
       { type: 'success', text: `3306/tcp open  mysql${hasVersionFlag ? '       MySQL 5.7.33' : ''}` },
-      { type: 'system', text: `\nNmap done: 1 IP address (1 host up) scanned in ${timeCost/1000}s` },
+      { type: 'system', text: `\nNmap done: 1 IP address (1 host up) scanned in ${timeCost/10}s` },
       { type: 'success', text: hasStealthFlag ? '✅ Stealth mode reduced visibility!' : '' },
     ],
     action: 'passive_scan',
@@ -118,7 +118,7 @@ function handlePing(args, currentNode) {
       { type: 'success', text: '✅ Host is alive!' },
     ],
     action: 'passive_scan',
-    params: { visibility: 3, timeCost: 1000 }
+    params: { visibility: 3, timeCost: 10 }  // Use same format as actions.js (will be multiplied by 100)
   }
 }
 
@@ -140,7 +140,7 @@ function handleWhois(args, currentNode) {
       { type: 'success', text: `Name Server: ns2.example.com` },
     ],
     action: 'passive_scan',
-    params: { visibility: 2, timeCost: 1500 }
+    params: { visibility: 2, timeCost: 15 }  // Use same format as actions.js
   }
 }
 
@@ -188,7 +188,7 @@ function handleExploit(args, currentNode) {
       { type: 'success', text: '🎯 Node compromised!' },
     ],
     action: 'exploit',
-    params: { visibility: 25, timeCost: 4000 }
+    params: { visibility: 25, timeCost: 40 }  // Use same format as actions.js
   }
 }
 
@@ -218,7 +218,7 @@ function handleSQLMap(args, currentNode) {
       { type: 'success', text: '💉 SQL Injection successful!' },
     ],
     action: 'exploit',
-    params: { visibility: 30, timeCost: 5000 }
+    params: { visibility: 30, timeCost: 50 }  // Use same format as actions.js
   }
 }
 
@@ -244,7 +244,7 @@ function handleHydra(args, currentNode) {
       { type: 'success', text: '🔓 Password cracked!' },
     ],
     action: 'brute_force',
-    params: { visibility: 40, timeCost: 6000 }
+    params: { visibility: 40, timeCost: 60 }  // Use same format as actions.js
   }
 }
 
@@ -263,7 +263,7 @@ function handleNetcat(args, currentNode) {
         { type: 'success', text: 'You now have remote access to the target system!' },
       ],
       action: 'lateral_movement',
-      params: { visibility: 25, timeCost: 3000, highValue: true }
+      params: { visibility: 25, timeCost: 30, highValue: true }  // Use same format as actions.js
     }
   }
 
@@ -274,7 +274,7 @@ function handleNetcat(args, currentNode) {
         { type: 'success', text: 'Connection established!' },
       ],
       action: 'lateral_movement',
-      params: { visibility: 15, timeCost: 2000 }
+      params: { visibility: 15, timeCost: 20 }  // Use same format as actions.js
     }
   }
 
@@ -307,7 +307,7 @@ function handleSSH(args, currentNode) {
       { type: 'success', text: '🔐 SSH access granted!' },
     ],
     action: 'lateral_movement',
-    params: { visibility: 20, timeCost: 3000 }
+    params: { visibility: 20, timeCost: 30 }  // Use same format as actions.js
   }
 }
 
@@ -379,7 +379,7 @@ function handleFind(args, currentNode) {
       { type: 'success', text: 'Found 3 files!' },
     ],
     action: 'data_exfiltration',
-    params: { visibility: 10, timeCost: 2000 }
+    params: { visibility: 10, timeCost: 20 }  // Use same format as actions.js
   }
 }
 

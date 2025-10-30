@@ -84,123 +84,175 @@ export default function GameScreen() {
   }, [gameState, counterHack, gameOver])
 
   const handleActionExecute = async (action) => {
-    if (executingAction) return // Prevent multiple actions at once
-
-    setExecutingAction(action)
-
-    // Get current node data
-    const currentNodeData = network?.nodes?.find(n => n.id === currentNode)
-
-    // Simulate action execution time
-    await new Promise(resolve => setTimeout(resolve, action.timeCost * 100)) // Scaled down for demo
-
-    // Calculate success
-    const roll = Math.random() * 100
-    const success = roll <= action.successRate
-
-    if (success) {
-      // Update visibility
-      updateVisibility(action.visibilityIncrease)
-
-      // Handle specific action effects
-      if (action.category === 'reconnaissance') {
-        // Discover connected nodes
-        if (currentNodeData && action.id === 'passiveScan') {
-          // Discover one random connected node
-          const undiscoveredConnections = currentNodeData.connections.filter(
-            connId => !network.nodes.find(n => n.id === connId)?.discovered
-          )
-          if (undiscoveredConnections.length > 0) {
-            const randomConn = undiscoveredConnections[Math.floor(Math.random() * undiscoveredConnections.length)]
-            discoverNode(randomConn)
-          }
-        } else if (action.id === 'networkMapping') {
-          // Discover all nodes
-          network.nodes.forEach(node => {
-            if (!node.discovered) {
-              discoverNode(node.id)
-            }
-          })
-        }
-      } else if (action.category === 'exploitation') {
-        // Compromise current node
-        compromiseNode(currentNode)
-      } else if (action.category === 'exfiltration') {
-        // Mark data as exfiltrated (triggers objective check)
-        checkObjectives()
-      }
-
-      addToActionLog(action, 'success', `Successfully executed ${action.name}`)
-
-      // AI Defender analyzes action
-      aiDefender.analyzeAction({
-        type: action.id,
-        success: true,
-        targetNode: currentNode
-      })
-
-      // Check for honeypot
-      const honeypotResult = aiDefender.checkHoneypot(action)
-      if (honeypotResult) {
-        updateVisibility(honeypotResult.visibility)
-        addToActionLog(
-          { name: 'HONEYPOT', icon: '🍯' },
-          'failure',
-          honeypotResult.message
-        )
-      }
-
-      // Check for IDS detection
-      const detected = checkForDetection(visibility + action.visibilityIncrease, action.visibilityIncrease)
-      if (detected) {
-        addToActionLog(
-          { name: 'IDS ALERT', icon: '🚨' },
-          'failure',
-          'Security systems detected suspicious activity!'
-        )
-        updateVisibility(10) // Additional penalty
-      }
-
-      // Check if counter-hack should start
-      checkCounterHack()
-
-      // Generate news for significant actions
-      if (action.category === 'exfiltration' || action.category === 'exploitation' || visibility > 60) {
-        const newsAction = {
-          type: action.category,
-          target: currentNodeData?.name || 'Unknown Target',
-          visibility,
-          dataStolen: action.category === 'exfiltration',
-          compromised: action.category === 'exploitation',
-          timestamp: Date.now()
-        }
-        generateNews(newsAction)
-      }
-    } else {
-      addToActionLog(action, 'failure', `${action.name} failed`)
-      updateVisibility(action.visibilityIncrease * 0.5) // Half visibility on failure
+    if (executingAction) {
+      console.log('Already executing, skipping')
+      return // Prevent multiple actions at once
     }
 
-    setExecutingAction(null)
-    checkObjectives()
+    if (!action) {
+      console.log('No action provided')
+      return
+    }
+
+    console.log('Starting action execution:', action.name)
+
+    try {
+      setExecutingAction(action)
+
+      // Get current node data
+      const currentNodeData = network.nodes.find(n => n.id === currentNode)
+
+      // Simulate action execution time
+      // timeCost from actions.js is in units (10 = 1 second), multiply by 100 to get milliseconds
+      const executionTime = (action.timeCost || 20) * 100 // Default 2 seconds
+      console.log('Executing for', executionTime, 'ms (timeCost:', action.timeCost, ')')
+      await new Promise(resolve => setTimeout(resolve, executionTime))
+
+      // Calculate success
+      const roll = Math.random() * 100
+      const success = roll <= action.successRate
+
+      if (success) {
+        // Update visibility
+        updateVisibility(action.visibilityIncrease)
+
+        // Handle specific action effects
+        if (action.category === 'reconnaissance') {
+          // Discover connected nodes
+          if (currentNodeData && action.id === 'passiveScan') {
+            // Discover one random connected node
+            const undiscoveredConnections = currentNodeData.connections.filter(
+              connId => !network.nodes.find(n => n.id === connId)?.discovered
+            )
+            if (undiscoveredConnections.length > 0) {
+              const randomConn = undiscoveredConnections[Math.floor(Math.random() * undiscoveredConnections.length)]
+              discoverNode(randomConn)
+            }
+          } else if (action.id === 'networkMapping') {
+            // Discover all nodes
+            network.nodes.forEach(node => {
+              if (!node.discovered) {
+                discoverNode(node.id)
+              }
+            })
+          }
+        } else if (action.category === 'exploitation') {
+          // Compromise current node
+          compromiseNode(currentNode)
+        } else if (action.category === 'exfiltration') {
+          // Mark data as exfiltrated (triggers objective check)
+          checkObjectives()
+        }
+
+        addToActionLog(action, 'success', `Successfully executed ${action.name}`)
+
+        // AI Defender analyzes action
+        aiDefender.analyzeAction({
+          type: action.id,
+          success: true,
+          targetNode: currentNode
+        })
+
+        // Check for honeypot
+        const honeypotResult = aiDefender.checkHoneypot(action)
+        if (honeypotResult) {
+          updateVisibility(honeypotResult.visibility)
+          addToActionLog(
+            { name: 'HONEYPOT', icon: '🍯' },
+            'failure',
+            honeypotResult.message
+          )
+        }
+
+        // Check for IDS detection
+        const detected = checkForDetection(visibility + action.visibilityIncrease, action.visibilityIncrease)
+        if (detected) {
+          addToActionLog(
+            { name: 'IDS ALERT', icon: '🚨' },
+            'failure',
+            'Security systems detected suspicious activity!'
+          )
+          updateVisibility(10) // Additional penalty
+        }
+
+        // Check if counter-hack should start
+        checkCounterHack()
+
+        // Generate news for significant actions
+        if (action.category === 'exfiltration' || action.category === 'exploitation' || visibility > 60) {
+          const newsAction = {
+            type: action.category,
+            target: currentNodeData?.name || 'Unknown Target',
+            visibility,
+            dataStolen: action.category === 'exfiltration',
+            compromised: action.category === 'exploitation',
+            timestamp: Date.now()
+          }
+          generateNews(newsAction)
+        }
+      } else {
+        addToActionLog(action, 'failure', `${action.name} failed`)
+        updateVisibility(action.visibilityIncrease * 0.5) // Half visibility on failure
+      }
+
+      console.log('Action completed, clearing executingAction')
+      setExecutingAction(null)
+      checkObjectives()
+    } catch (error) {
+      console.error('Error executing action:', error)
+      addToActionLog(
+        { name: 'ERROR', icon: '❌' },
+        'failure',
+        `Action failed: ${error.message}`
+      )
+      console.log('Error occurred, clearing executingAction')
+      setExecutingAction(null)
+    } finally {
+      // Ensure executingAction is always cleared
+      console.log('Finally block: ensuring executingAction is cleared')
+      setTimeout(() => {
+        setExecutingAction(null)
+      }, 100)
+    }
   }
 
   const handleCommandExecute = async (actionId, params = {}) => {
-    // Map command actions to game actions
-    const actionMap = {
-      'passive_scan': 'passiveScan',
-      'port_scan': 'portScan',
-      'exploit': 'exploitKnownVuln',
-      'brute_force': 'bruteForce',
-      'lateral_movement': 'lateralMovement',
-      'data_exfiltration': 'dataExfiltration',
-      'cover_tracks': 'clearLogs',
+    // Don't execute if already executing
+    if (executingAction) {
+      console.log('Already executing action, skipping:', actionId)
+      return
     }
 
-    const gameActionId = actionMap[actionId] || actionId
-    const action = actions[gameActionId]
+    try {
+      console.log('Executing command:', actionId, params)
+      
+      // Map command actions to game actions
+      const actionMap = {
+        'passive_scan': 'passiveScan',
+        'port_scan': 'portScan',
+        'exploit': 'exploitKnownVuln',
+        'brute_force': 'bruteForce',
+        'lateral_movement': 'lateralMovement',
+        'data_exfiltration': 'dataExfiltration',
+        'cover_tracks': 'clearLogs',
+      }
 
-    if (action) {
+      const gameActionId = actionMap[actionId] || actionId
+      console.log('Mapped to game action:', gameActionId)
+      
+      const action = actions[gameActionId]
+
+      if (!action) {
+        console.error(`Action not found: ${actionId} (mapped to ${gameActionId})`)
+        console.log('Available actions:', Object.keys(actions))
+        addToActionLog(
+          { name: 'ERROR', icon: '❌' },
+          'failure',
+          `Unknown command: ${actionId}`
+        )
+        return
+      }
+
       // Merge command params with action
       const enhancedAction = {
         ...action,
@@ -209,7 +261,15 @@ export default function GameScreen() {
         timeCost: params.timeCost || action.timeCost,
       }
       
+      console.log('Executing enhanced action:', enhancedAction)
       await handleActionExecute(enhancedAction)
+    } catch (error) {
+      console.error('Error executing command:', error)
+      addToActionLog(
+        { name: 'ERROR', icon: '❌' },
+        'failure',
+        `Command execution failed: ${error.message}`
+      )
     }
   }
 
@@ -218,8 +278,8 @@ export default function GameScreen() {
       {/* Status Bar */}
       <StatusBar />
 
-      {/* Main Content */}
-      <div className="flex-1 flex gap-4 overflow-hidden">
+      {/* Main Content - with bottom padding for action bar */}
+      <div className="flex-1 flex gap-4 overflow-hidden pb-32">
         {/* Left Sidebar - Objectives (Collapsible) */}
         {showSidebar && (
           <motion.div
@@ -232,10 +292,11 @@ export default function GameScreen() {
           </motion.div>
         )}
 
-        {/* Sidebar Toggle Button */}
+        {/* Sidebar Toggle Button - Attached to right side of sidebar */}
         <button
           onClick={() => setShowSidebar(!showSidebar)}
-          className="absolute left-4 top-24 z-30 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm"
+          className="fixed left-80 top-24 z-30 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm shadow-lg"
+          style={{ transform: showSidebar ? 'translateX(0)' : 'translateX(-304px)' }}
           title={showSidebar ? "Hide sidebar" : "Show sidebar"}
         >
           {showSidebar ? <ChevronLeft className="w-5 h-5 text-cyan-400" /> : <ChevronRight className="w-5 h-5 text-cyan-400" />}
@@ -297,17 +358,31 @@ export default function GameScreen() {
                   <h3 className="text-2xl font-heading font-bold text-cyan-300 mb-2">
                     Executing {executingAction.name}
                   </h3>
-                  <p className="text-gray-400">{executingAction.description}</p>
+                  <p className="text-gray-400 mb-2">{executingAction.description}</p>
+                  
+                  {/* Time indicator */}
+                  <div className="text-sm text-cyan-400 font-mono mb-4">
+                    ⏱️ {((executingAction.timeCost || 20) * 100 / 1000).toFixed(1)}s
+                  </div>
+                  
+                  {/* Progress bar */}
                   <motion.div
-                    className="mt-4 h-2 bg-gray-800 rounded-full overflow-hidden"
+                    className="mt-2 h-3 bg-gray-800 rounded-full overflow-hidden relative"
                     initial={{ width: 0 }}
                   >
                     <motion.div
-                      className="h-full bg-cyber-cyan"
+                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 relative"
                       initial={{ width: '0%' }}
                       animate={{ width: '100%' }}
-                      transition={{ duration: executingAction.timeCost * 0.1 }}
-                    />
+                      transition={{ duration: ((executingAction.timeCost || 20) * 100) / 1000, ease: 'linear' }}
+                    >
+                      {/* Animated shine effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{ x: ['-100%', '200%'] }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      />
+                    </motion.div>
                   </motion.div>
                 </motion.div>
               </motion.div>
@@ -331,14 +406,24 @@ export default function GameScreen() {
                 >
                   <h2 className="text-6xl font-heading font-bold text-cyan-300 mb-4">PAUSED</h2>
                   <p className="text-gray-400 mb-6">Click the play button to resume</p>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={resumeGame}
-                    className="px-8 py-3 bg-cyber-cyan text-cyber-dark font-bold rounded-lg"
-                  >
-                    Resume Mission
-                  </motion.button>
+                  <div className="flex gap-4 justify-center">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={resumeGame}
+                      className="px-8 py-3 bg-cyber-cyan text-cyber-dark font-bold rounded-lg"
+                    >
+                      Resume Mission
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={resetGame}
+                      className="px-8 py-3 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600"
+                    >
+                      Quit to Menu
+                    </motion.button>
+                  </div>
                 </motion.div>
               </motion.div>
             )}
@@ -406,9 +491,6 @@ export default function GameScreen() {
         </div>
       </div>
 
-      {/* Bottom - Action Log */}
-      <ActionLog />
-
       {/* Cinematic Event Notification */}
       <AnimatePresence>
         {activeEvent && (
@@ -439,40 +521,32 @@ export default function GameScreen() {
         )}
       </AnimatePresence>
 
-      {/* Bottom Action Buttons - Only show when not paused */}
+      {/* Bottom Bar - Buttons and Action Log */}
       {gameState === 'playing' && (
-        <div className="fixed bottom-4 left-4 z-30 flex gap-3">
-          {/* Social Engineering Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowSocialEngineering(true)}
-            className="px-4 py-3 bg-cyan-600 border-2 border-cyan-400 rounded-lg text-white font-bold hover:bg-cyan-500 transition-colors flex items-center gap-2 shadow-lg shadow-cyan-500/50"
-            title="Try to manipulate the sysadmin"
-          >
-            <MessageSquare className="w-5 h-5" />
-            Social Eng
-          </motion.button>
+        <div className="fixed bottom-0 left-0 right-0 z-30 bg-gray-900/80 border-t border-cyan-500/30 p-4">
+          <div className="flex items-center gap-4 max-w-screen-2xl mx-auto">
+            {/* Left: Action Buttons */}
+            <div className="flex gap-3">
+              {/* Social Engineering Button */}
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowSocialEngineering(true)}
+                className="px-4 py-3 bg-cyan-600 border-2 border-cyan-400 rounded-lg text-white font-bold hover:bg-cyan-500 transition-colors flex items-center gap-2 shadow-lg shadow-cyan-500/50"
+                title="Try to manipulate the sysadmin"
+              >
+                <MessageSquare className="w-5 h-5" />
+                Social Eng
+              </motion.button>
+            </div>
 
-          {/* X-Ray Mode Toggle Button */}
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              setXrayMode(true)
-              setXrayAction('reconnaissance')
-            }}
-            className="px-4 py-3 bg-purple-600 border-2 border-purple-400 rounded-lg text-white font-bold hover:bg-purple-500 transition-colors flex items-center gap-2 shadow-lg shadow-purple-500/50"
-            title="Learn about cybersecurity concepts in real-time"
-          >
-            <Eye className="w-5 h-5" />
-            X-Ray
-          </motion.button>
+            {/* Action Log - moved left to fill X-Ray button gap */}
+            <div className="flex-1 ml-4">
+              <ActionLog />
+            </div>
+          </div>
         </div>
       )}
 

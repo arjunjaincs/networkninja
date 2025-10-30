@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Activity, Zap, Shield, Bot } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Activity, Zap, Shield, Bot, ChevronRight, ChevronLeft } from 'lucide-react'
 import { PacketManager } from '../systems/NetworkPacket'
 import { NetworkPhysics, BandwidthSimulator } from '../systems/NetworkPhysics'
 import useGameState from '../hooks/useGameState'
@@ -10,6 +10,7 @@ export default function NetworkTrafficOverlay() {
   const [packetManager] = useState(() => new PacketManager())
   const [physics] = useState(() => new NetworkPhysics(null))
   const [bandwidth] = useState(() => new BandwidthSimulator())
+  const [isVisible, setIsVisible] = useState(true)
   const [stats, setStats] = useState({
     packets: 0,
     bandwidth: 0,
@@ -68,12 +69,25 @@ export default function NetworkTrafficOverlay() {
         style={{ zIndex: 5 }}
       />
 
-      {/* Traffic Stats */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="absolute top-20 right-4 z-10 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg p-3 backdrop-blur-sm min-w-[200px]"
+      {/* Toggle Button - stays at right edge */}
+      <button
+        onClick={() => setIsVisible(!isVisible)}
+        className="absolute top-20 z-20 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-all backdrop-blur-sm shadow-lg"
+        style={{ right: isVisible ? '252px' : '4px' }}
+        title={isVisible ? "Hide network traffic" : "Show network traffic"}
       >
+        {isVisible ? <ChevronRight className="w-5 h-5 text-cyan-400" /> : <ChevronLeft className="w-5 h-5 text-cyan-400" />}
+      </button>
+
+      {/* Traffic Stats */}
+      <AnimatePresence>
+        {isVisible && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute top-20 right-16 z-10 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg p-3 backdrop-blur-sm w-[220px]"
+          >
         <div className="flex items-center gap-2 mb-3">
           <Activity className="w-4 h-4 text-cyan-400" />
           <span className="text-sm font-bold text-cyan-400">NETWORK TRAFFIC</span>
@@ -134,29 +148,9 @@ export default function NetworkTrafficOverlay() {
           </motion.div>
         )}
 
-        {/* Legend */}
-        <div className="mt-3 pt-3 border-t border-gray-700">
-          <div className="text-xs text-gray-500 mb-2">Traffic Types:</div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500" />
-              <span className="text-xs text-gray-400">Normal (Employees)</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500" />
-              <span className="text-xs text-gray-400">Hackers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-yellow-500" />
-              <span className="text-xs text-gray-400">Bots</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-orange-500" />
-              <span className="text-xs text-gray-400">Security (IDS)</span>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

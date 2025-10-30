@@ -64,6 +64,7 @@ export default function NetworkMap() {
   }
 
   const handleWheel = (e) => {
+    e.preventDefault() // Prevent browser zoom
     const delta = e.deltaY > 0 ? 0.9 : 1.1
     setZoom(prev => Math.max(0.5, Math.min(2, prev * delta)))
   }

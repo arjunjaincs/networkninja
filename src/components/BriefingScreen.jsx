@@ -1,16 +1,26 @@
 import { motion } from 'framer-motion'
-import { Target, Info, Lightbulb, Play } from 'lucide-react'
+import { Target, Info, Lightbulb, Play, ArrowLeft } from 'lucide-react'
 import useGameState from '../hooks/useGameState'
 import { getDifficultyColor } from '../data/levels'
 
 export default function BriefingScreen() {
   const levelData = useGameState(state => state.levelData)
   const startGame = useGameState(state => state.startGame)
+  const resetGame = useGameState(state => state.resetGame)
 
   if (!levelData) return null
 
   return (
     <div className="min-h-screen bg-cyber-dark scan-lines flex items-center justify-center p-8">
+      {/* Back Button */}
+      <button
+        onClick={resetGame}
+        className="fixed top-4 left-4 z-50 p-3 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm shadow-lg flex items-center gap-2"
+      >
+        <ArrowLeft className="w-5 h-5 text-cyan-400" />
+        <span className="text-cyan-400 font-bold">Back to Menu</span>
+      </button>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

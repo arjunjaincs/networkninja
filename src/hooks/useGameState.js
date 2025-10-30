@@ -619,13 +619,11 @@ const useGameState = create((set, get) => ({
   deployCountermeasures: () => {
     const result = get().counterHack.deployCountermeasures()
     if (result.success) {
-      get().addToActionLog({
-        action: 'Countermeasures',
-        result: 'success',
-        details: result.message,
-        icon: '🛡️',
-        timestamp: new Date().toLocaleTimeString()
-      })
+      get().addToActionLog(
+        { name: 'Countermeasures', icon: '🛡️', category: 'defense' },
+        'success',
+        result.message
+      )
     }
     return result
   },
@@ -633,13 +631,13 @@ const useGameState = create((set, get) => ({
   disconnectFromTrace: () => {
     const result = get().counterHack.disconnect()
     if (result.success) {
-      get().addToActionLog({
-        action: 'Emergency Disconnect',
-        result: 'success',
-        details: result.message,
-        icon: '🔌',
-        timestamp: new Date().toLocaleTimeString()
-      })
+      get().addToActionLog(
+        { name: 'Emergency Disconnect', icon: '🔌', category: 'defense' },
+        'success',
+        result.message
+      )
+      // Stop the trace
+      get().counterHack.stopTrace()
     }
     return result
   },
@@ -648,13 +646,19 @@ const useGameState = create((set, get) => ({
     const result = get().counterHack.counterTrace()
     if (result.success) {
       set({ credits: get().credits + result.reward.credits })
-      get().addToActionLog({
-        action: 'Counter-Trace',
-        result: 'success',
-        details: result.reward.message,
-        icon: '🎯',
-        timestamp: new Date().toLocaleTimeString()
-      })
+      get().addToActionLog(
+        { name: 'Counter-Trace', icon: '🎯', category: 'offense' },
+        'success',
+        result.reward.message
+      )
+      // Stop the trace
+      get().counterHack.stopTrace()
+    } else {
+      get().addToActionLog(
+        { name: 'Counter-Trace', icon: '🎯', category: 'offense' },
+        'failure',
+        'Counter-trace attempt failed!'
+      )
     }
     return result
   },
