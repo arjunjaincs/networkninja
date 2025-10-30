@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion'
-import { Target, CheckCircle, Circle, Info } from 'lucide-react'
+import { Target, CheckCircle, Circle, Info, ChevronLeft } from 'lucide-react'
 import useGameState from '../hooks/useGameState'
 
-export default function ObjectivePanel() {
+export default function ObjectivePanel({ onToggle }) {
   const levelData = useGameState(state => state.levelData)
   const objectives = useGameState(state => state.objectives)
   const currentNode = useGameState(state => state.currentNode)
@@ -18,7 +18,18 @@ export default function ObjectivePanel() {
   const tertiaryObj = levelData.objectives?.tertiary || { description: 'Complete bonus objective' }
 
   return (
-    <div className="bg-gray-900/80 border-r border-cyan-500/30 p-4 overflow-y-auto h-full">
+    <div className="bg-gray-900/80 border-r border-cyan-500/30 p-4 overflow-y-auto h-full relative">
+      {/* Hide Sidebar Button - Inside sidebar at top */}
+      {onToggle && (
+        <button
+          onClick={onToggle}
+          className="absolute top-4 right-4 z-10 p-2 bg-gray-800 border border-cyan-500/50 rounded-lg hover:bg-gray-700 transition-colors"
+          title="Hide sidebar"
+        >
+          <ChevronLeft className="w-4 h-4 text-cyan-400" />
+        </button>
+      )}
+      
       <div className="flex items-center gap-2 mb-4">
         <Target className="w-5 h-5 text-cyan-400" />
         <h2 className="text-xl font-heading font-bold text-cyan-300">Objectives</h2>

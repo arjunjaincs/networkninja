@@ -12,7 +12,7 @@ export default function ActionLog() {
         <span className="text-xs text-gray-500 ml-auto">Last {actionLog.length} actions</span>
       </div>
 
-      <div className="space-y-2 max-h-24 overflow-y-auto overflow-x-hidden">
+      <div className="space-y-2 max-h-16 overflow-y-auto overflow-x-hidden">
         {actionLog.length === 0 ? (
           <div className="text-sm text-gray-500 text-center py-4">
             No actions yet. Start by selecting an action from the panel.

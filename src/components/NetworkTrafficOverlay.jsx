@@ -69,11 +69,10 @@ export default function NetworkTrafficOverlay() {
         style={{ zIndex: 5 }}
       />
 
-      {/* Toggle Button - stays at right edge */}
+      {/* Toggle Button - stays at right of box, changes direction */}
       <button
         onClick={() => setIsVisible(!isVisible)}
-        className="absolute top-20 z-20 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-all backdrop-blur-sm shadow-lg"
-        style={{ right: isVisible ? '252px' : '4px' }}
+        className="absolute top-20 right-4 z-20 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-all backdrop-blur-sm shadow-lg"
         title={isVisible ? "Hide network traffic" : "Show network traffic"}
       >
         {isVisible ? <ChevronRight className="w-5 h-5 text-cyan-400" /> : <ChevronLeft className="w-5 h-5 text-cyan-400" />}

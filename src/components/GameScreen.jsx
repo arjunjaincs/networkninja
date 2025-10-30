@@ -288,19 +288,20 @@ export default function GameScreen() {
             exit={{ x: -300, opacity: 0 }}
             className="w-80 flex-shrink-0"
           >
-            <ObjectivePanel />
+            <ObjectivePanel onToggle={() => setShowSidebar(false)} />
           </motion.div>
         )}
 
-        {/* Sidebar Toggle Button - Attached to right side of sidebar */}
-        <button
-          onClick={() => setShowSidebar(!showSidebar)}
-          className="fixed left-80 top-24 z-30 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm shadow-lg"
-          style={{ transform: showSidebar ? 'translateX(0)' : 'translateX(-304px)' }}
-          title={showSidebar ? "Hide sidebar" : "Show sidebar"}
-        >
-          {showSidebar ? <ChevronLeft className="w-5 h-5 text-cyan-400" /> : <ChevronRight className="w-5 h-5 text-cyan-400" />}
-        </button>
+        {/* Show Sidebar Button - Only when hidden */}
+        {!showSidebar && (
+          <button
+            onClick={() => setShowSidebar(true)}
+            className="fixed left-4 top-24 z-30 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm shadow-lg"
+            title="Show sidebar"
+          >
+            <ChevronRight className="w-5 h-5 text-cyan-400" />
+          </button>
+        )}
 
         {/* Center - Network Map */}
         <div className="flex-1 relative">

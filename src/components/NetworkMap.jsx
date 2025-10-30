@@ -190,6 +190,7 @@ export default function NetworkMap() {
                 {/* Persistent Info Label - Always Visible */}
                 <div className="absolute left-24 top-0 bg-gray-900/95 border border-cyan-500/50 rounded-lg px-3 py-2 text-xs whitespace-nowrap backdrop-blur-sm pointer-events-none z-30 min-w-[200px] shadow-xl">
                   <div className="font-bold text-cyan-300 mb-1">{node.name}</div>
+                  {node.ip && <div className="text-cyan-400 font-mono text-xs mb-1">📡 {node.ip}</div>}
                   <div className="text-gray-400 mb-1">{node.type}</div>
                   {node.os && <div className="text-gray-500 text-xs mb-1">{node.os}</div>}
                   {node.vulnerabilities && node.vulnerabilities.length > 0 && (

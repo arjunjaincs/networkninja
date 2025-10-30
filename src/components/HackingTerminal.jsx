@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Terminal as TerminalIcon, Minimize2, Maximize2, HelpCircle } from 'lucide-react'
-import { parseCommand } from '../utils/commandParser'
+import { parseCommand, setNetworkContext } from '../utils/commandParser'
 import useGameState from '../hooks/useGameState'
 
 export default function HackingTerminal({ onCommandExecute, isMinimized, onToggleMinimize }) {
@@ -25,6 +25,13 @@ export default function HackingTerminal({ onCommandExecute, isMinimized, onToggl
 
   const currentNode = useGameState(state => state.currentNode)
   const network = useGameState(state => state.network)
+
+  // Update network context when network changes
+  useEffect(() => {
+    if (network) {
+      setNetworkContext(network)
+    }
+  }, [network])
 
   // Auto-scroll to bottom
   useEffect(() => {
