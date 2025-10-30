@@ -1,0 +1,101 @@
+{
+  "id": "template",
+  "version": "2.0",
+  "name": "Level Template",
+  "difficulty": "normal",
+  "timeLimit": 600,
+  "description": "Template for creating new levels",
+  "briefing": {
+    "title": "Mission Briefing",
+    "client": "Anonymous Client",
+    "target": "Target Corporation",
+    "objective": "Your mission objectives",
+    "intel": [
+      "Intelligence point 1",
+      "Intelligence point 2"
+    ],
+    "risks": [
+      "Risk factor 1",
+      "Risk factor 2"
+    ]
+  },
+  "network": {
+    "nodes": [
+      {
+        "id": "node_1",
+        "name": "Entry Point",
+        "type": "router",
+        "icon": "🌐",
+        "x": 100,
+        "y": 100,
+        "discovered": true,
+        "os": "Cisco IOS 15.2",
+        "ports": [22, 80, 443],
+        "vulnerabilities": ["Weak Password"],
+        "connections": ["node_2"],
+        "hasData": false
+      },
+      {
+        "id": "node_2",
+        "name": "Web Server",
+        "type": "server",
+        "icon": "🗄️",
+        "x": 300,
+        "y": 150,
+        "discovered": false,
+        "os": "Ubuntu 22.04",
+        "ports": [80, 443, 3306],
+        "vulnerabilities": ["SQL Injection", "Outdated Software"],
+        "connections": ["node_1", "node_3"],
+        "hasData": true,
+        "dataType": "Customer Database"
+      }
+    ],
+    "edges": [
+      {
+        "from": "node_1",
+        "to": "node_2"
+      }
+    ]
+  },
+  "objectives": {
+    "primary": {
+      "id": "primary",
+      "description": "Exfiltrate customer database",
+      "completed": false,
+      "points": 5000
+    },
+    "secondary": {
+      "id": "secondary",
+      "description": "Remain undetected (visibility < 70%)",
+      "completed": false,
+      "points": 2000
+    },
+    "tertiary": {
+      "id": "tertiary",
+      "description": "Complete in under 5 minutes",
+      "completed": false,
+      "points": 1000
+    }
+  },
+  "debrief": {
+    "success": "Mission accomplished! The data has been exfiltrated.",
+    "failure": "Mission failed. Security detected the intrusion.",
+    "educational": {
+      "concepts": ["SQL Injection", "Data Exfiltration"],
+      "realWorldExample": "Similar attacks have compromised millions of records",
+      "defenseStrategies": [
+        "Input validation",
+        "Prepared statements",
+        "Regular security audits"
+      ]
+    }
+  },
+  "metadata": {
+    "author": "Network Ninja Team",
+    "created": "2024-01-01",
+    "tags": ["beginner", "web", "database"],
+    "estimatedTime": 10,
+    "communityRating": 4.5
+  }
+}
