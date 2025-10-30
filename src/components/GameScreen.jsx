@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Pause, Play, AlertTriangle, Eye, MessageSquare, Shield, Terminal as TerminalIcon } from 'lucide-react'
+import { Pause, Play, AlertTriangle, Eye, MessageSquare, Shield, Terminal as TerminalIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import StatusBar from './StatusBar'
 import NetworkMap from './NetworkMap'
 import ActionPanel from './ActionPanel'
@@ -32,6 +32,7 @@ export default function GameScreen() {
   const [terminalMinimized, setTerminalMinimized] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState(null)
   const [counterHackStatus, setCounterHackStatus] = useState({ active: false, progress: 0, timeRemaining: 30 })
+  const [showSidebar, setShowSidebar] = useState(true)
   const gameState = useGameState(state => state.gameState)
   const activeEvent = useGameState(state => state.activeEvent)
   const levelData = useGameState(state => state.levelData)
@@ -184,16 +185,16 @@ export default function GameScreen() {
     checkObjectives()
   }
 
-  const handleCommandExecute = (actionId, params = {}) => {
+  const handleCommandExecute = async (actionId, params = {}) => {
     // Map command actions to game actions
     const actionMap = {
       'passive_scan': 'passiveScan',
-      'port_scan': 'passiveScan',
-      'exploit': 'exploit',
+      'port_scan': 'portScan',
+      'exploit': 'exploitKnownVuln',
       'brute_force': 'bruteForce',
       'lateral_movement': 'lateralMovement',
       'data_exfiltration': 'dataExfiltration',
-      'cover_tracks': 'coverTracks',
+      'cover_tracks': 'clearLogs',
     }
 
     const gameActionId = actionMap[actionId] || actionId
@@ -204,11 +205,11 @@ export default function GameScreen() {
       const enhancedAction = {
         ...action,
         ...params,
-        visibility: params.visibility !== undefined ? params.visibility : action.visibilityIncrease,
+        visibilityIncrease: params.visibility !== undefined ? params.visibility : action.visibilityIncrease,
         timeCost: params.timeCost || action.timeCost,
       }
       
-      handleActionExecute(enhancedAction)
+      await handleActionExecute(enhancedAction)
     }
   }
 
@@ -219,10 +220,26 @@ export default function GameScreen() {
 
       {/* Main Content */}
       <div className="flex-1 flex gap-4 overflow-hidden">
-        {/* Left Sidebar - Objectives */}
-        <div className="w-80 flex-shrink-0">
-          <ObjectivePanel />
-        </div>
+        {/* Left Sidebar - Objectives (Collapsible) */}
+        {showSidebar && (
+          <motion.div
+            initial={{ x: -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            className="w-80 flex-shrink-0"
+          >
+            <ObjectivePanel />
+          </motion.div>
+        )}
+
+        {/* Sidebar Toggle Button */}
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          className="absolute left-4 top-24 z-30 p-2 bg-gray-900/95 border-2 border-cyan-500/50 rounded-lg hover:bg-gray-800 transition-colors backdrop-blur-sm"
+          title={showSidebar ? "Hide sidebar" : "Show sidebar"}
+        >
+          {showSidebar ? <ChevronLeft className="w-5 h-5 text-cyan-400" /> : <ChevronRight className="w-5 h-5 text-cyan-400" />}
+        </button>
 
         {/* Center - Network Map */}
         <div className="flex-1 relative">

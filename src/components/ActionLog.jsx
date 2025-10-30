@@ -6,7 +6,7 @@ export default function ActionLog() {
   const actionLog = useGameState(state => state.actionLog)
 
   return (
-    <div className="bg-gray-900/80 border-t border-cyan-500/30 p-4 ml-auto max-w-4xl">
+    <div className="bg-gray-900/80 border-t border-cyan-500/30 p-4 max-w-2xl">
       <div className="flex items-center gap-2 mb-3">
         <Terminal className="w-4 h-4 text-cyan-400" />
         <h3 className="text-sm font-heading font-bold text-cyan-300">Action Log</h3>
