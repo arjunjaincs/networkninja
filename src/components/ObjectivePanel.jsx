@@ -61,10 +61,10 @@ export default function ObjectivePanel({ onToggle }) {
         </div>
       </div>
 
-      {/* Secondary Objective */}
+      {/* Optional Objective 1 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-bold text-cyan-400">SECONDARY</span>
+          <span className="text-xs font-bold text-cyan-400">OPTIONAL #1</span>
           <span className="text-xs text-gray-500">+500 pts</span>
         </div>
         <div className={`p-3 rounded-lg border ${
@@ -81,10 +81,10 @@ export default function ObjectivePanel({ onToggle }) {
         </div>
       </div>
 
-      {/* Tertiary Objective */}
+      {/* Optional Objective 2 */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-bold text-purple-400">TERTIARY</span>
+          <span className="text-xs font-bold text-purple-400">OPTIONAL #2</span>
           <span className="text-xs text-gray-500">+300 pts</span>
         </div>
         <div className={`p-3 rounded-lg border ${
@@ -99,6 +99,45 @@ export default function ObjectivePanel({ onToggle }) {
             <p className="text-sm text-gray-200">{tertiaryObj.description}</p>
           </div>
         </div>
+      </div>
+
+      {/* Testing Button - Finish Instantly */}
+      <div className="mb-6">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            const completeLevel = useGameState.getState().completeLevel
+            const compromiseNode = useGameState.getState().compromiseNode
+            const checkObjectives = useGameState.getState().checkObjectives
+            
+            // Compromise target node
+            if (levelData.objectives.primary.targetNode) {
+              compromiseNode(levelData.objectives.primary.targetNode)
+            }
+            
+            // Force complete all objectives
+            useGameState.setState({
+              objectives: {
+                primary: true,
+                secondary: true,
+                tertiary: true
+              }
+            })
+            
+            // Complete level
+            setTimeout(() => {
+              completeLevel()
+            }, 100)
+          }}
+          className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 border-2 border-purple-500 rounded-lg font-bold text-white hover:from-purple-500 hover:to-pink-500 transition-all shadow-lg"
+        >
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-lg">⚡</span>
+            <span>Finish Instantly</span>
+          </div>
+          <div className="text-xs opacity-75 mt-1">Testing / Demo Mode</div>
+        </motion.button>
       </div>
 
       {/* Current Node Info */}

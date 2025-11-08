@@ -10,7 +10,7 @@ export default function NetworkTrafficOverlay() {
   const [packetManager] = useState(() => new PacketManager())
   const [physics] = useState(() => new NetworkPhysics(null))
   const [bandwidth] = useState(() => new BandwidthSimulator())
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
   const [stats, setStats] = useState({
     packets: 0,
     bandwidth: 0,

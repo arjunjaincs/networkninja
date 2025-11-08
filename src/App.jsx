@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, BookOpen, Settings, TrendingUp, Shuffle, Infinity, Zap, Trophy, Sparkles, ShoppingBag } from 'lucide-react'
+import { Play, BookOpen, Settings, TrendingUp, Shuffle, Infinity, Zap, Trophy, Sparkles, ShoppingBag, Calendar } from 'lucide-react'
 import useGameState from './hooks/useGameState'
 import BriefingScreen from './components/BriefingScreen'
 import GameScreen from './components/GameScreen'
@@ -11,6 +11,7 @@ import EducationalDebrief from './components/EducationalDebrief'
 import SkillTreeScreen from './components/SkillTreeScreen'
 import ToolsShop from './components/ToolsShop'
 import ProceduralMissionScreen from './components/ProceduralMissionScreen'
+import DailyContractsPanel from './components/DailyContractsPanel'
 import { getCareerRank } from './data/careers'
 import { getDailySeed, CHALLENGE_MODIFIERS, getRandomModifier } from './utils/procedural'
 
@@ -19,6 +20,7 @@ function App() {
   const [showSkillTree, setShowSkillTree] = useState(false)
   const [showToolsShop, setShowToolsShop] = useState(false)
   const [showProceduralMissions, setShowProceduralMissions] = useState(false)
+  const [showDailyContracts, setShowDailyContracts] = useState(false)
   const gameState = useGameState(state => state.gameState)
 
   // Scroll to top when game state changes
@@ -379,7 +381,7 @@ function App() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mt-8 flex gap-3 justify-center"
+            className="mt-8 flex gap-3 justify-center flex-wrap"
           >
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -399,6 +401,15 @@ function App() {
               <ShoppingBag className="w-5 h-5" />
               Tools Shop
             </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowDailyContracts(true)}
+              className="px-6 py-3 bg-yellow-600 text-white font-heading font-bold rounded-lg hover:bg-yellow-500 transition-colors inline-flex items-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              Daily Contracts
+            </motion.button>
           </motion.div>
 
           {/* Footer */}
@@ -411,6 +422,9 @@ function App() {
       {/* Tools Shop Modal */}
       {showToolsShop && <ToolsShop onClose={() => setShowToolsShop(false)} />}
       
+      {/* Daily Contracts Modal */}
+      {showDailyContracts && <DailyContractsPanel onClose={() => setShowDailyContracts(false)} />}
+      
       {/* Procedural Missions Screen - Fixed overlay */}
       {showProceduralMissions && (
         <div className="fixed inset-0 z-50 overflow-auto">
@@ -419,6 +433,11 @@ function App() {
             onBack={() => setShowProceduralMissions(false)}
           />
         </div>
+      )}
+
+      {/* Daily Contracts Panel */}
+      {showDailyContracts && (
+        <DailyContractsPanel onClose={() => setShowDailyContracts(false)} />
       )}
     </div>
   )

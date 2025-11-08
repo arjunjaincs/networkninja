@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Lock, CheckCircle, AlertTriangle, Move, DollarSign } from 'lucide-react'
 import useGameState from '../hooks/useGameState'
@@ -16,6 +16,34 @@ export default function NetworkMap() {
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const containerRef = useRef(null)
+
+  // Center the map on mount
+  useEffect(() => {
+    if (network && containerRef.current) {
+      // Calculate center of all nodes
+      const nodes = network.nodes
+      if (nodes.length > 0) {
+        // Find the bounds of all nodes
+        const minY = Math.min(...nodes.map(n => n.y))
+        const maxY = Math.max(...nodes.map(n => n.y))
+        const minX = Math.min(...nodes.map(n => n.x))
+        const maxX = Math.max(...nodes.map(n => n.x))
+        
+        const avgX = (minX + maxX) / 2
+        const avgY = (minY + maxY) / 2
+        
+        // Get container dimensions
+        const containerWidth = containerRef.current.offsetWidth
+        const containerHeight = containerRef.current.offsetHeight
+        
+        // Center the map with extra padding at top to ensure top nodes are visible
+        setPan({
+          x: containerWidth / 2 - avgX * 1.5 - 40,
+          y: containerHeight / 2 - avgY * 1.2 + 50  // +50 extra padding at top
+        })
+      }
+    }
+  }, [network])
 
   if (!network) return null
 
@@ -187,8 +215,8 @@ export default function NetworkMap() {
                   </div>
                 </div>
 
-                {/* Persistent Info Label - Always Visible */}
-                <div className="absolute left-24 top-0 bg-gray-900/95 border border-cyan-500/50 rounded-lg px-3 py-2 text-xs whitespace-nowrap backdrop-blur-sm pointer-events-none z-30 min-w-[200px] shadow-xl">
+                {/* Info Label - Show on Hover Only */}
+                <div className="absolute left-24 top-0 bg-gray-900/95 border border-cyan-500/50 rounded-lg px-3 py-2 text-xs whitespace-nowrap backdrop-blur-sm pointer-events-none z-30 min-w-[200px] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <div className="font-bold text-cyan-300 mb-1">{node.name}</div>
                   {node.ip && <div className="text-cyan-400 font-mono text-xs mb-1">📡 {node.ip}</div>}
                   <div className="text-gray-400 mb-1">{node.type}</div>

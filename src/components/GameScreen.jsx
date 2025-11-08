@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Pause, Play, AlertTriangle, Eye, MessageSquare, Shield, Terminal as TerminalIcon, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Pause, Play, MessageSquare, Terminal as TerminalIcon, ChevronRight } from 'lucide-react'
 import StatusBar from './StatusBar'
 import NetworkMap from './NetworkMap'
 import ActionPanel from './ActionPanel'
@@ -14,8 +14,12 @@ import NewsArticleModal from './NewsArticleModal'
 import NetworkTrafficOverlay from './NetworkTrafficOverlay'
 import TutorialHints from './TutorialHints'
 import XRayMode from './XRayMode'
+import AIThreatMeter from './AIThreatMeter'
+import CounterHackPanel from './CounterHackPanel'
+import SkillEffectsIndicator from './SkillEffectsIndicator'
 import useGameState from '../hooks/useGameState'
 import useTimer from '../hooks/useTimer'
+import useSkillEffects from '../hooks/useSkillEffects'
 import { checkForDetection } from '../utils/detection'
 import { triggerRandomEvent, getEventColor } from '../data/cinematicEvents'
 import { actions } from '../data/actions'
@@ -34,10 +38,12 @@ export default function GameScreen() {
   const [counterHackStatus, setCounterHackStatus] = useState({ active: false, progress: 0, timeRemaining: 30 })
   const [showSidebar, setShowSidebar] = useState(true)
   const gameState = useGameState(state => state.gameState)
+  const { applySkillEffects } = useSkillEffects()
   const activeEvent = useGameState(state => state.activeEvent)
   const levelData = useGameState(state => state.levelData)
   const pauseGame = useGameState(state => state.pauseGame)
   const resumeGame = useGameState(state => state.resumeGame)
+  const resetGame = useGameState(state => state.resetGame)
   const triggerEvent = useGameState(state => state.triggerEvent)
   const clearEvent = useGameState(state => state.clearEvent)
   const updateVisibility = useGameState(state => state.updateVisibility)
@@ -97,24 +103,26 @@ export default function GameScreen() {
     console.log('Starting action execution:', action.name)
 
     try {
-      setExecutingAction(action)
+      // Apply skill effects to action
+      const modifiedAction = applySkillEffects(action)
+      setExecutingAction(modifiedAction)
 
       // Get current node data
       const currentNodeData = network.nodes.find(n => n.id === currentNode)
 
-      // Simulate action execution time
+      // Simulate action execution time (using modified action with skill effects)
       // timeCost from actions.js is in units (10 = 1 second), multiply by 100 to get milliseconds
-      const executionTime = (action.timeCost || 20) * 100 // Default 2 seconds
-      console.log('Executing for', executionTime, 'ms (timeCost:', action.timeCost, ')')
+      const executionTime = (modifiedAction.timeCost || 20) * 100 // Default 2 seconds
+      console.log('Executing for', executionTime, 'ms (timeCost:', modifiedAction.timeCost, ')')
       await new Promise(resolve => setTimeout(resolve, executionTime))
 
-      // Calculate success
+      // Calculate success (using modified success rate from skills)
       const roll = Math.random() * 100
-      const success = roll <= action.successRate
+      const success = roll <= modifiedAction.successRate
 
       if (success) {
-        // Update visibility
-        updateVisibility(action.visibilityIncrease)
+        // Update visibility (using modified visibility from skills)
+        updateVisibility(modifiedAction.visibilityIncrease)
 
         // Handle specific action effects
         if (action.category === 'reconnaissance') {
@@ -307,7 +315,7 @@ export default function GameScreen() {
         <div className="flex-1 relative">
           <NetworkMap />
           
-          {/* Network Traffic Overlay */}
+          {/* Network Traffic Overlay - Has its own toggle button */}
           <NetworkTrafficOverlay />
 
           {/* Pause/Resume Button - Top Right Corner */}
@@ -433,34 +441,8 @@ export default function GameScreen() {
 
         {/* Right Sidebar - Actions & Terminal */}
         <div className={`flex-shrink-0 flex flex-col gap-4 transition-all duration-300 ${showTerminal ? 'w-[50vw]' : 'w-96'}`}>
-          {/* AI Threat Meter */}
-          <div className="bg-gray-900/95 border-2 border-red-500/50 rounded-lg p-4 backdrop-blur-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="w-5 h-5 text-red-400" />
-              <span className="text-sm font-bold text-red-400">AI THREAT LEVEL</span>
-            </div>
-            <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
-                initial={{ width: 0 }}
-                animate={{ width: `${aiDefender.adaptationLevel}%` }}
-                transition={{ duration: 0.5 }}
-              />
-            </div>
-            <div className="flex items-center justify-between mt-2 text-xs">
-              <span className="text-gray-400">{aiDefender.adaptationLevel}%</span>
-              <span className="text-gray-400">
-                {aiDefender.adaptationLevel < 30 ? 'Low' : 
-                 aiDefender.adaptationLevel < 60 ? 'Medium' : 
-                 aiDefender.adaptationLevel < 90 ? 'High' : 'Critical'}
-              </span>
-            </div>
-            {aiDefender.getRecentCountermeasures().length > 0 && (
-              <div className="mt-2 text-xs text-yellow-400">
-                ⚠️ {aiDefender.getRecentCountermeasures().length} active countermeasures
-              </div>
-            )}
-          </div>
+          {/* AI Threat Meter Component */}
+          <AIThreatMeter />
 
           {/* Terminal Toggle Button */}
           <motion.button
@@ -572,6 +554,12 @@ export default function GameScreen() {
       {/* Tutorial Hints */}
       <TutorialHints />
 
+      {/* Skill Effects Indicator */}
+      <SkillEffectsIndicator />
+
+      {/* Counter-Hack Panel */}
+      <CounterHackPanel />
+
       {/* Dynamic News Ticker */}
       {newsHeadlines.length > 0 && (
         <DynamicNewsTicker
@@ -595,59 +583,11 @@ export default function GameScreen() {
         />
       )}
 
-      {/* Counter-Hack Warning */}
-      {counterHackStatus.active && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="fixed top-32 right-4 z-40 bg-red-900/95 border-2 border-red-500 rounded-lg p-4 backdrop-blur-sm max-w-sm shadow-2xl shadow-red-500/50"
-        >
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0 animate-pulse" />
-            <div className="flex-1">
-              <h3 className="text-lg font-bold text-red-300 mb-1">⚠️ INCOMING TRACE!</h3>
-              <p className="text-sm text-red-200 mb-2">Sysadmin is tracing your connection!</p>
-              
-              {/* Timer Display */}
-              <div className="text-2xl font-bold text-red-400 mb-3 text-center">
-                {counterHackStatus.timeRemaining}s
-              </div>
-              
-              {/* Progress Bar */}
-              <div className="w-full h-3 bg-red-950 rounded-full overflow-hidden mb-3 border border-red-700">
-                <motion.div
-                  className="h-full bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500"
-                  animate={{ width: `${counterHackStatus.progress}%` }}
-                  transition={{ duration: 0.1 }}
-                />
-              </div>
-              
-              <div className="flex gap-2">
-                <button
-                  onClick={() => deployCountermeasures()}
-                  disabled={counterHackStatus.countermeasuresRemaining === 0}
-                  className="flex-1 px-3 py-2 bg-yellow-600 hover:bg-yellow-500 rounded text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  🛡️ Countermeasures ({counterHackStatus.countermeasuresRemaining})
-                </button>
-                <button
-                  onClick={() => attemptCounterTrace()}
-                  disabled={!counterHack.getStatus().canCounterTrace}
-                  className="flex-1 px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  🎯 Counter-Trace
-                </button>
-                <button
-                  onClick={() => disconnectFromTrace()}
-                  className="flex-1 px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded text-xs font-bold"
-                >
-                  🔌 Disconnect
-                </button>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      {/* Counter-Hack Panel - Shows when trace is active */}
+      <CounterHackPanel />
+
+      {/* Skill Effects Indicator - Shows active skill bonuses */}
+      <SkillEffectsIndicator />
     </div>
   )
 }
